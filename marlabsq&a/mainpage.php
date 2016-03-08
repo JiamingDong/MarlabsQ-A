@@ -117,15 +117,30 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
             var li = $("<li>");
             li.attr('id', post.post_id)
                 .addClass("list-group-item")
-                .addClass("list-group-item-success")
                 .addClass("post_li")
                 .addClass("noselect")
                 .css({"text-align":"left"})
                 .html("<label>"+post.post_summary+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 
+            if (post.post_type == '0') {  // post is an unsolved question
+                li.addClass("list-group-item-danger");
+            } else if (post.post_type == '1') {  // post is a note
+                li.addClass("list-group-item-info");
+            } else { // post is a solved question
+                li.addClass("list-group-item-success");
+            }
+
             li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
                       "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
             post_list.append(li);
+        });
+    }
+
+    function isMapped(post_id, folder_id) {
+        return $.ajax({
+            url:'actions.php',
+            type:'post',
+            data:{'action':'check_post_folder_mapping', 'post_id':post_id, 'folder_id':folder_id}
         });
     }
 
@@ -147,12 +162,47 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
             success:function(updated_folders_in_json) {
                 folders = JSON.parse(updated_folders_in_json);
                 $("#folder_list").empty();
-                $("#folder_list").append('<li id="all"><a href="#">All</a></li>');
+                $("#folder_list").append('<li id="all" class="folder_li"><a href="#">All</a></li>');
                 $("#folder_list").append('<li class="dropdown-header">Filter posts by folder</li>');
                 folders.forEach(function(folder) {
                     var li = $("<li>");
-                    li.attr('id', folder.folder_id).html("<a href='#'>" + folder.folder_name + "</a>");
+                    li.attr('id', folder.folder_id).attr('class', 'folder_li').html("<a href='#'>" + folder.folder_name + "</a>");
                     $("#folder_list").append(li);
+                });
+
+                $(".folder_li").on("click", function() {
+                    var post_list = $("#post-list");
+                    var folder_id = $(this).attr("id");
+                    post_list.empty();
+                    posts.sort(function(post1, post2){
+                        return new Date(post2.post_date) - new Date(post1.post_date);
+                    });
+
+                    posts.forEach(function(post) {
+                        isMapped(post.post_id, folder_id).done(function (ismapped) {
+                            if (ismapped) {
+                                var li = $("<li>");
+                                li.attr('id', post.post_id)
+                                    .addClass("list-group-item")
+                                    .addClass("post_li")
+                                    .addClass("noselect")
+                                    .css({"text-align":"left"})
+                                    .html("<label>"+post.post_summary+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+
+                                if (post.post_type == '0') {  // post is an unsolved question
+                                    li.addClass("list-group-item-danger");
+                                } else if (post.post_type == '1') {  // post is a note
+                                    li.addClass("list-group-item-info");
+                                } else { // post is a solved question
+                                    li.addClass("list-group-item-success");
+                                }
+
+                                li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
+                                    "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
+                                post_list.append(li);
+                            }
+                        });
+                    });
                 });
 
             },
@@ -357,6 +407,77 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
             });
 
         });
+
+        // hit the search button
+        $(document).on("click", "#search-btn", function () {
+            var input_val = $("#search-input").val();
+            var post_list = $('#post-list');
+            post_list.empty();
+            posts.forEach(function(post) {
+                var index = post.post_summary.toLowerCase().indexOf(input_val.toLowerCase());
+                if (index > -1) {  // post is a search result.
+                    var search_result = input_val.length == 0? post.post_summary : post.post_summary.substring(0, index) +
+                    '<mark>' + post.post_summary.substring(index, index + input_val.length) + '</mark>' +
+                    post.post_summary.substring(index + input_val.length);
+                    var li = $("<li>");
+                    li.attr('id', post.post_id)
+                        .addClass("list-group-item")
+                        .addClass("post_li")
+                        .addClass("noselect")
+                        .css({"text-align":"left"})
+                        .html("<label>"+search_result+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+
+                    if (post.post_type == '0') {  // post is an unsolved question
+                        li.addClass("list-group-item-danger");
+                    } else if (post.post_type == '1') {  // post is a note
+                        li.addClass("list-group-item-info");
+                    } else { // post is a solved question
+                        li.addClass("list-group-item-success");
+                    }
+
+                    li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
+                        "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
+                    post_list.append(li);
+                }
+            });
+        });
+
+        // hit enter on the keyboard when the cursor is in the searchbox input
+        $('#search-input').keypress(function (e) {
+            if (e.which == 13) { // 13 represents enter
+                var input_val = $("#search-input").val();
+                var post_list = $('#post-list');
+                post_list.empty();
+                posts.forEach(function(post) {
+                    var index = post.post_summary.toLowerCase().indexOf(input_val.toLowerCase());
+                    if (index > -1) {  // post is a search result.
+                        var search_result = input_val.length == 0? post.post_summary : post.post_summary.substring(0, index) +
+                            '<mark>' + post.post_summary.substring(index, index + input_val.length) + '</mark>' +
+                            post.post_summary.substring(index + input_val.length);
+                        var li = $("<li>");
+                        li.attr('id', post.post_id)
+                            .addClass("list-group-item")
+                            .addClass("post_li")
+                            .addClass("noselect")
+                            .css({"text-align":"left"})
+                            .html("<label>"+search_result+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+
+                        if (post.post_type == '0') {  // post is an unsolved question
+                            li.addClass("list-group-item-danger");
+                        } else if (post.post_type == '1') {  // post is a note
+                            li.addClass("list-group-item-info");
+                        } else { // post is a solved question
+                            li.addClass("list-group-item-success");
+                        }
+
+                        li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
+                            "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
+                        post_list.append(li);
+                    }
+                });
+            }
+        });
+
     });
 
     function isAnonymous(poster_id, post_privacy) {
@@ -396,15 +517,15 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                         var displayed_name = isAnonymous(poster_obj.user_id, post_obj.post_privacy) ? "Anonymous" : poster_obj.first_name;
                         $("#dash-board").empty();
                         $("#dash-board").append('' +
-                            '<div class="panel panel-success" style="margin-top: 10px;">'+
+                            '<div class="panel panel-warning" style="margin-top: 10px;">'+
                                 '<div class="panel-heading">' +
                                     '<h4><label style="margin-left: 10px;">'+ post_obj.post_summary + '<label></h4>' +
                                 '</div>'+
                                 '<div class="panel-body">' +
-                                    '<pre>' + post_obj.post_details + '</pre>' +
+                                    '<pre><code>' + post_obj.post_details + '</code></pre>' +
                                 '</div>' +
                                 '<div class="panel-footer" style="text-align: right;">' +
-                                    '<span style="font-style: italic;color:slategrey;">Posted on '+post_obj.post_date+' by '+ displayed_name +'</span>' +
+                                    '<span style="font-style: italic;color:slategrey;">Posted by '+ displayed_name + ' ' + timeSince(new Date(post_obj.post_date)) + '.</span>' +
                                 '</div>'+
                             '</div>');
 
@@ -418,7 +539,7 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                                 var folder_names = JSON.parse(folder_names_in_json);
                                 var panel_body = $("#dash-board").find(".panel-body");
                                 for (var i = 0; i < folder_names.length; i++) {
-                                    panel_body.append('<span class="label label-info">' + folder_names[i] + '</span>&nbsp;');
+                                    panel_body.append('<span class="label label-warning">' + folder_names[i] + '</span>&nbsp;');
                                 }
 
                                 var panel_head = $("#dash-board").find(".panel-heading");
@@ -427,13 +548,15 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                                         '<button type="button" class="btn btn-danger locked_active">Unsolved</button>'+
                                         '<button type="button" class="btn btn-default unlocked_inactive">Solved</button>'+
                                         '</div>');
-                                    panel_head.prepend('<span style="color:darkgoldenrod;" class="glyphicon glyphicon-question-sign"></span><span style="font-family: Impact, Haettenschweiler; color:darkgoldenrod;"> Question</span>');
+                                    panel_head.prepend('<span style="color:orange;" class="glyphicon glyphicon-question-sign"></span><span style="font-family: Impact, Haettenschweiler; color:orange;"> Question</span>');
 
                                     var switch_btn = $("#toggle_event_editing button");
 
                                     var current_user_id = <?php echo $current_user->user_id;?>;
                                     if (current_user_id == poster_obj.user_id) { // Current user is the poster of this particular post.
                                         switch_btn.click(function(){
+                                            toggleQuestionType(post_obj.post_id, post_obj.post_type);
+
                                             if($(this).hasClass('locked_active') || $(this).hasClass('unlocked_inactive')){
                                                 /* code to do when unlocking */
                                                 // Unsolved to Solved
@@ -459,9 +582,45 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                                         switch_btn.prop("disabled",true);
                                     }
                                 } else if (post_obj.post_type == "1") { // a note
-                                    panel_head.prepend('<span style="color:black;" class="glyphicon glyphicon-pencil"></span><span style="font-family: Impact, Haettenschweiler; color:black;"> Note</span>');
+                                    panel_head.prepend('<span style="color:dodgerblue;" class="glyphicon glyphicon-pencil"></span><span style="font-family: Impact, Haettenschweiler; color:dodgerblue;"> Note</span>');
                                 } else { // a solved question
+                                    panel_head.prepend('<div class="btn-group" id="toggle_event_editing" style="margin-left: 10px;">'+
+                                        '<button type="button" class="btn btn-default locked_inactive">Unsolved</button>'+
+                                        '<button type="button" class="btn btn-success unlocked_active">Solved</button>'+
+                                        '</div>');
+                                    panel_head.prepend('<span style="color:orange;" class="glyphicon glyphicon-question-sign"></span><span style="font-family: Impact, Haettenschweiler; color:orange;"> Question</span>');
 
+                                    var switch_btn = $("#toggle_event_editing button");
+
+                                    var current_user_id = <?php echo $current_user->user_id;?>;
+                                    if (current_user_id == poster_obj.user_id) { // Current user is the poster of this particular post.
+                                        switch_btn.click(function(){
+                                            toggleQuestionType(post_obj.post_id, post_obj.post_type);
+
+                                            if($(this).hasClass('locked_active') || $(this).hasClass('unlocked_inactive')){
+                                                /* code to do when unlocking */
+                                                // Unsolved to Solved
+                                                switch_btn.eq(0).removeClass('btn-danger');
+                                                switch_btn.eq(0).addClass('btn-default');
+                                                switch_btn.eq(1).removeClass('btn-default');
+                                                switch_btn.eq(1).addClass('btn-success');
+
+                                            }else{
+                                                /* code to do when locking */
+                                                // Solved to Unsolved
+                                                switch_btn.eq(0).removeClass('btn-default');
+                                                switch_btn.eq(0).addClass('btn-danger');
+                                                switch_btn.eq(1).removeClass('btn-success');
+                                                switch_btn.eq(1).addClass('btn-default');
+                                            }
+
+                                            /* reverse locking status */
+                                            switch_btn.eq(0).toggleClass('locked_inactive locked_active');
+                                            switch_btn.eq(1).toggleClass('unlocked_inactive unlocked_active');
+                                        });
+                                    } else {
+                                        switch_btn.prop("disabled",true);
+                                    }
                                 }
                             },
                             error:function(exception) {
@@ -482,13 +641,30 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
         });
     }
 
+    function toggleQuestionType(post_id, post_type) {
+        // update global variable posts
+        for (var i in posts) {
+            if (posts[i].post_id == post_id) {
+                posts[i].post_type = post_type == '0' ? '2' : '0';
+                break; //Stop this loop, we found it!
+            }
+        }
+
+        // update html elements
+        $("#post-list").find("li#" + post_id).toggleClass("list-group-item-danger list-group-item-success");
+
+        // update database
+        $.ajax({
+            url:'actions.php',
+            type:'post',
+            data:{'action':'toggle_question_type', 'post_id':post_id, 'post_type':post_type}
+        });
+    }
+
     // hit a post list item
     $(document).on("click", ".post_li", function () {
-        $("#" + focused_post).removeClass("list-group-item-warning");
-        $("#" + focused_post).addClass("list-group-item-success");
-
-        $(this).removeClass("list-group-item-success");
-        $(this).addClass("list-group-item-warning");
+        $("#" + focused_post).removeClass("list-group-item-focused");
+        $(this).addClass("list-group-item-focused");
         focused_post = $(this).attr("id");
 
         // refresh the main-board of the new focused post.
@@ -593,9 +769,9 @@ echo "<div id=\"loggedinnotice\" class=\"alert alert-info\">
                 <div class="col-md-9">
                     <div id="custom-search-input" style="margin-left: 5px;">
                         <div class="input-group col-md-12">
-                            <input type="text" class="form-control input-lg" placeholder="Search posts..." />
+                            <input id="search-input"type="text" class="form-control input-lg" placeholder="Search posts..." />
                             <span class="input-group-btn">
-                                <button class="btn btn-info btn-lg" type="button">
+                                <button id="search-btn" class="btn btn-info btn-lg" type="button">
                                     <i class="glyphicon glyphicon-search"></i>
                                 </button>
                             </span>

@@ -192,4 +192,29 @@ function getFolderNamesByPostId($dbc, $post_id) {
     }
 }
 
+function isMapped($dbc, $post_id, $folder_id) {
+    if ($folder_id == 'all') return true;
+    else {
+        $q = "SELECT * FROM PostFolderMap WHERE post_id = '$post_id' AND folder_id = '$folder_id'";
+        if ($r = @mysqli_query($dbc, $q)) {
+            if(mysqli_num_rows($r) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+function toggleQuestionType($dbc, $post_id, $post_type) {
+    if ($post_type == '0') {
+        $update_q = "UPDATE Posts SET post_type = '2' WHERE post_id = '$post_id'";
+        if (@mysqli_query($dbc, $update_q)) return true;
+    } else if ($post_type == '2') {
+        $update_q = "UPDATE Posts SET post_type = '0' WHERE post_id = '$post_id'";
+        if (@mysqli_query($dbc, $update_q)) return true;
+    }
+
+    return false;
+}
+
 ?>

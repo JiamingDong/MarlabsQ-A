@@ -38,6 +38,12 @@ switch ($_POST['action']) {
     case 'get_related_folders':
         echo json_encode(getFolderNamesByPostId($dbc, $_POST['post_id']));
         break;
+    case 'check_post_folder_mapping':
+        echo isMapped($dbc, $_POST['post_id'], $_POST['folder_id']);
+        break;
+    case 'toggle_question_type':
+        echo toggleQuestionType($dbc, $_POST['post_id'], $_POST['post_type']);
+        break;
     default:
         break;
 }

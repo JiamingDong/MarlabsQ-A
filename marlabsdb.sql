@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 08, 2016 at 06:25 AM
+-- Generation Time: Mar 08, 2016 at 10:17 PM
 -- Server version: 10.1.9-MariaDB
 -- PHP Version: 5.6.15
 
@@ -82,7 +82,10 @@ INSERT INTO `PostFolderMap` (`post_id`, `folder_id`) VALUES
 (13, 2),
 (16, 50),
 (41, 56),
-(42, 36);
+(42, 36),
+(43, 37),
+(44, 2),
+(45, 53);
 
 -- --------------------------------------------------------
 
@@ -111,16 +114,19 @@ INSERT INTO `Posts` (`post_id`, `post_summary`, `post_details`, `post_date`, `po
 (6, 'Kai', 'I am Kaiyuan Duuan.', '2016-03-07 01:48:53', '0', '1', '0', '3', 7),
 (7, 'csd', 'csd sdcsdcwev ewdewcsdc', '2016-03-07 03:48:52', '1', '0', '0', '2', 3),
 (8, 'KLD', 'I am KLD', '2016-03-07 03:49:48', '1', '1', '1', '2', 6),
-(9, 'Only to the Trainer by KLD', 'How to traverse an array in jQuery?', '2016-03-07 03:51:59', '2', '1', '0', '2', 6),
+(9, 'Only to the Trainer by KLD', 'How to traverse an array in jQuery?', '2016-03-07 03:51:59', '2', '1', '2', '2', 6),
 (10, 'Hi I am Binoy', 'I am your trainer in Java', '2016-03-07 03:55:30', '0', '0', '1', '2', 5),
-(11, 'This a post with out folder', 'This a post with out folder by min hu', '2016-03-07 04:05:35', '0', '0', '0', '2', 3),
+(11, 'This a post with out folder', 'This a post with out folder by min hu', '2016-03-07 04:05:35', '0', '0', '2', '2', 3),
 (12, 'Assignment 2 Jiaming', 'This is my assignment 2 submission.\nThanks.\nJiaming', '2016-03-07 19:21:55', '0', '0', '1', '0', 1),
 (13, 'Assignment 2 Jiaming', 'This is my assignment 2 submission.\nThanks.\nJiaming', '2016-03-07 19:21:58', '0', '0', '1', '0', 1),
 (14, 'PHP Class John', 'I am your trainer', '2016-03-07 19:24:51', '0', '0', '1', '0', 2),
 (15, 'JJJJJ', 'cdsc s\ndcsdc', '2016-03-07 19:27:13', '0', '0', '1', '0', 2),
-(16, 'Minhu', 'newfolder33333333 3', '2016-03-07 19:40:09', '0', '0', '0', '2', 3),
+(16, 'Minhu', 'newfolder33333333 3', '2016-03-07 19:40:09', '0', '0', '2', '2', 3),
 (41, 'Assignment 1 Note', 'Kaiyuan Duan note .NET Assignment 1 submission.', '2016-03-07 20:42:25', '0', '0', '1', '3', 7),
-(42, 'Java Note Min Hu', 'JavaScript is one of the 3 languages all web developers must learn:\n\n   1. HTML to define the content of web pages\n\n   2. CSS to specify the layout of web pages\n\n   3. JavaScript to program the behavior of web pages\n\nThis tutorial is about JavaScript, and', '2016-03-08 06:01:06', '0', '1', '1', '2', 3);
+(42, 'Java Note Min Hu', 'JavaScript is one of the 3 languages all web developers must learn:\n\n   1. HTML to define the content of web pages\n\n   2. CSS to specify the layout of web pages\n\n   3. JavaScript to program the behavior of web pages\n\nThis tutorial is about JavaScript, and', '2016-03-08 06:01:06', '0', '1', '1', '2', 3),
+(43, 'This is a note', 'for - loops through a block of code a number of times\nfor/in - loops through the properties of an object\nwhile - loops through a block of code while a specified condition is true', '2016-03-08 17:31:34', '0', '0', '1', '2', 5),
+(44, 'Code Debug', '.p {\n  font-family: Arial, sans-erif;\n  font-size: 14px;\n  margin-top: 80px;\n}', '2016-03-08 17:35:55', '1', '0', '2', '0', 1),
+(45, 'Final project', 'Hi I have a question about our final project, do we have a template?', '2016-03-08 22:03:17', '2', '0', '0', '2', 3);
 
 -- --------------------------------------------------------
 
@@ -196,7 +202,7 @@ ALTER TABLE `Folders`
 -- AUTO_INCREMENT for table `Posts`
 --
 ALTER TABLE `Posts`
-  MODIFY `post_id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `post_id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 --
 -- AUTO_INCREMENT for table `Users`
 --

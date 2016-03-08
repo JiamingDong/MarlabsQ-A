@@ -338,3 +338,7 @@ div[data-toggle="buttons"] label:active, div[data-toggle="buttons"] label.active
     user-select: none;           /* non-prefixed version, currently
                                   not supported by any browser */
 }
+
+.list-group-item-focused {
+    opacity: 0.5;
+}
