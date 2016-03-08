@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 07, 2016 at 08:55 PM
+-- Generation Time: Mar 08, 2016 at 06:25 AM
 -- Server version: 10.1.9-MariaDB
 -- PHP Version: 5.6.15
 
@@ -81,7 +81,8 @@ INSERT INTO `PostFolderMap` (`post_id`, `folder_id`) VALUES
 (12, 2),
 (13, 2),
 (16, 50),
-(41, 56);
+(41, 56),
+(42, 36);
 
 -- --------------------------------------------------------
 
@@ -118,7 +119,8 @@ INSERT INTO `Posts` (`post_id`, `post_summary`, `post_details`, `post_date`, `po
 (14, 'PHP Class John', 'I am your trainer', '2016-03-07 19:24:51', '0', '0', '1', '0', 2),
 (15, 'JJJJJ', 'cdsc s\ndcsdc', '2016-03-07 19:27:13', '0', '0', '1', '0', 2),
 (16, 'Minhu', 'newfolder33333333 3', '2016-03-07 19:40:09', '0', '0', '0', '2', 3),
-(41, 'Assignment 1 Note', 'Kaiyuan Duan note .NET Assignment 1 submission.', '2016-03-07 20:42:25', '0', '0', '1', '3', 7);
+(41, 'Assignment 1 Note', 'Kaiyuan Duan note .NET Assignment 1 submission.', '2016-03-07 20:42:25', '0', '0', '1', '3', 7),
+(42, 'Java Note Min Hu', 'JavaScript is one of the 3 languages all web developers must learn:\n\n   1. HTML to define the content of web pages\n\n   2. CSS to specify the layout of web pages\n\n   3. JavaScript to program the behavior of web pages\n\nThis tutorial is about JavaScript, and', '2016-03-08 06:01:06', '0', '1', '1', '2', 3);
 
 -- --------------------------------------------------------
 
@@ -194,7 +196,7 @@ ALTER TABLE `Folders`
 -- AUTO_INCREMENT for table `Posts`
 --
 ALTER TABLE `Posts`
-  MODIFY `post_id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `post_id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 --
 -- AUTO_INCREMENT for table `Users`
 --

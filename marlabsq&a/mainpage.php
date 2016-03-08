@@ -91,7 +91,8 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
             'their problem as well as discuss a certain topic. They can also search for a certain post by its title and filter' +
             'for certain posts by the folder added by the trainer.</p>');
         $("#dash-board").append('<hr><h3>Class At A Glance</h3>');
-        $("#dash-board").append('<p>Posts, Questions and Followups</p>');
+
+        $("#dash-board").append('<p>Questions, Notes and Followups.</p>');
     }
 
     $('body').on('click', function (e) {
@@ -122,7 +123,8 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                 .css({"text-align":"left"})
                 .html("<label>"+post.post_summary+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 
-            li.append("<span style='color:slategrey;'>"+post.post_date+"</span><br>" + post.post_details);
+            li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
+                      "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
             post_list.append(li);
         });
     }
@@ -357,6 +359,25 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
         });
     });
 
+    function isAnonymous(poster_id, post_privacy) {
+        var current_user_id = <?php echo $current_user->user_id;?>;
+        if ((current_user_id == poster_id) ||
+            (post_privacy == '0')) {  // current user is the poster or non-anonymous post.
+            return false;
+        } else { // Anonymous to all or to the classmates
+            var current_user_type = <?php echo $current_user->user_type;?>;
+            if (current_user_type == '0') { // current user is a trainee
+                return true;
+            } else { // current user is a trainer
+                if (post_privacy == '1') {  // anonymous to all.
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+    }
+
     function load_post_details() {
         // get post object from back side
         $.ajax({
@@ -372,15 +393,81 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                     data:{'action':'get_user_object', 'user_id':post_obj.posted_by},
                     success: function (user_in_json) {
                         var poster_obj = JSON.parse(user_in_json);
+                        var displayed_name = isAnonymous(poster_obj.user_id, post_obj.post_privacy) ? "Anonymous" : poster_obj.first_name;
                         $("#dash-board").empty();
                         $("#dash-board").append('' +
                             '<div class="panel panel-success" style="margin-top: 10px;">'+
-                            '<div class="panel-heading"><label>'+post_obj.post_summary+'<label></div>'+
-                            '<div class="panel-body" style="height: 100px;;"><pre>'+post_obj.post_details+'</pre></div>' +
-                            '<div class="panel-footer" style="text-align: right;">' +
-                            '<span style="font-style: italic;color:slategrey;">Posted on '+post_obj.post_date+' by '+ poster_obj.first_name +'</span>' +
-                            '</div>'+
+                                '<div class="panel-heading">' +
+                                    '<h4><label style="margin-left: 10px;">'+ post_obj.post_summary + '<label></h4>' +
+                                '</div>'+
+                                '<div class="panel-body">' +
+                                    '<pre>' + post_obj.post_details + '</pre>' +
+                                '</div>' +
+                                '<div class="panel-footer" style="text-align: right;">' +
+                                    '<span style="font-style: italic;color:slategrey;">Posted on '+post_obj.post_date+' by '+ displayed_name +'</span>' +
+                                '</div>'+
                             '</div>');
+
+                        // retrieve all the folders related
+                        $.ajax({
+                            url:'actions.php',
+                            type:'post',
+                            data:{'action':'get_related_folders', 'post_id':post_obj.post_id},
+                            success:function(folder_names_in_json){
+                                // insert all the folders related to this particular post right after pre tag
+                                var folder_names = JSON.parse(folder_names_in_json);
+                                var panel_body = $("#dash-board").find(".panel-body");
+                                for (var i = 0; i < folder_names.length; i++) {
+                                    panel_body.append('<span class="label label-info">' + folder_names[i] + '</span>&nbsp;');
+                                }
+
+                                var panel_head = $("#dash-board").find(".panel-heading");
+                                if (post_obj.post_type == "0") { // an unsolved question
+                                    panel_head.prepend('<div class="btn-group" id="toggle_event_editing" style="margin-left: 10px;">'+
+                                        '<button type="button" class="btn btn-danger locked_active">Unsolved</button>'+
+                                        '<button type="button" class="btn btn-default unlocked_inactive">Solved</button>'+
+                                        '</div>');
+                                    panel_head.prepend('<span style="color:darkgoldenrod;" class="glyphicon glyphicon-question-sign"></span><span style="font-family: Impact, Haettenschweiler; color:darkgoldenrod;"> Question</span>');
+
+                                    var switch_btn = $("#toggle_event_editing button");
+
+                                    var current_user_id = <?php echo $current_user->user_id;?>;
+                                    if (current_user_id == poster_obj.user_id) { // Current user is the poster of this particular post.
+                                        switch_btn.click(function(){
+                                            if($(this).hasClass('locked_active') || $(this).hasClass('unlocked_inactive')){
+                                                /* code to do when unlocking */
+                                                // Unsolved to Solved
+                                                switch_btn.eq(0).removeClass('btn-danger');
+                                                switch_btn.eq(0).addClass('btn-default');
+                                                switch_btn.eq(1).removeClass('btn-default');
+                                                switch_btn.eq(1).addClass('btn-success');
+
+                                            }else{
+                                                /* code to do when locking */
+                                                // Solved to Unsolved
+                                                switch_btn.eq(0).removeClass('btn-default');
+                                                switch_btn.eq(0).addClass('btn-danger');
+                                                switch_btn.eq(1).removeClass('btn-success');
+                                                switch_btn.eq(1).addClass('btn-default');
+                                            }
+
+                                            /* reverse locking status */
+                                            switch_btn.eq(0).toggleClass('locked_inactive locked_active');
+                                            switch_btn.eq(1).toggleClass('unlocked_inactive unlocked_active');
+                                        });
+                                    } else {
+                                        switch_btn.prop("disabled",true);
+                                    }
+                                } else if (post_obj.post_type == "1") { // a note
+                                    panel_head.prepend('<span style="color:black;" class="glyphicon glyphicon-pencil"></span><span style="font-family: Impact, Haettenschweiler; color:black;"> Note</span>');
+                                } else { // a solved question
+
+                                }
+                            },
+                            error:function(exception) {
+                                alert("Failed to load folders.");
+                            }
+                        });
                     },
                     error:function(exception) {
                         $("#dash-board").empty();

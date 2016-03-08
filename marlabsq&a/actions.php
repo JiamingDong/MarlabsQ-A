@@ -35,6 +35,9 @@ switch ($_POST['action']) {
     case 'get_user_object':
         echo json_encode(getUserById($dbc, $_POST['user_id']));
         break;
+    case 'get_related_folders':
+        echo json_encode(getFolderNamesByPostId($dbc, $_POST['post_id']));
+        break;
     default:
         break;
 }

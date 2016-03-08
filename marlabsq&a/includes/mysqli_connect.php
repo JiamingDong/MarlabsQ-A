@@ -176,5 +176,20 @@ function add_new_post($dbc, $summary, $details, $privacy, $post_to, $post_type, 
     return retrieve_posts($dbc, $posted_by, "-1");
 }
 
+function getFolderNamesByPostId($dbc, $post_id) {
+    $q = "SELECT Folders.folder_name
+          FROM PostFolderMap INNER JOIN Folders ON PostFolderMap.folder_id = Folders.folder_id
+          WHERE '$post_id' = PostFolderMap.post_id";
+
+    if ($r = @mysqli_query($dbc, $q)) { // post has folders
+        $folder_names = array();
+        while ($row=mysqli_fetch_row($r)) {
+            array_push($folder_names, $row[0]);
+        }
+        return $folder_names;
+    } else { // no folder for this post
+        return array();
+    }
+}
 
 ?>
