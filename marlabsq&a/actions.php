@@ -5,7 +5,7 @@
  * Date: 3/4/16
  * Time: 8:36 PM
  */
-include_once ('includes/mysqli_connect.php');
+include_once('mysqli_connect.php');
 
 
 switch ($_POST['action']) {
@@ -43,6 +43,16 @@ switch ($_POST['action']) {
         break;
     case 'toggle_question_type':
         echo toggleQuestionType($dbc, $_POST['post_id'], $_POST['post_type']);
+        break;
+    case 'retrieve_followups':
+        echo json_encode(Followup::retrieve_followups($dbc, $_POST['post_following']));
+        break;
+    case 'add_followup':
+        echo json_encode(Followup::add_new_followup($dbc,
+            $_POST['followup_details'],
+            $_POST['followup_privacy'],
+            $_POST['post_following'],
+            $_POST['added_by']));
         break;
     default:
         break;

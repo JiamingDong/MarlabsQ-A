@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     require ('includes/functions_needed.php');
 
     // Need the database connection:
-    require('includes/mysqli_connect.php');
+    require('mysqli_connect.php');
     // Check the register:
     $register_info = array('first_name'=>$_POST['first_name'],
                            'last_name'=>$_POST['last_name'],

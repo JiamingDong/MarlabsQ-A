@@ -20,7 +20,7 @@ if (!isset($_SESSION['user_id'])) {
 // Set the page title and include the HTML header:
 $page_title = 'Main Page';
 include_once ('includes/header.html');
-require_once('includes/mysqli_connect.php');
+require_once('mysqli_connect.php');
 
 $current_user = getUserById($dbc, $_SESSION['user_id']);
 switch($current_user->class_type){
@@ -40,176 +40,27 @@ switch($current_user->class_type){
 // get the trainer of current user's class.
 $trainer = getTrainer($dbc, $_SESSION['user_id']);
 
+// pass global variables from php to javascript in this page.
+echo "<script type=\"text/javascript\">".
+       "var class_name = '".$current_class."';".
+       "var current_user_id = '".$current_user->user_id."';".
+       "var current_user_first_name = '".$current_user->first_name."';".
+       "var current_user_type = '".$current_user->user_type."';".
+       "var trainer_id = '".(isset($trainer) ? $trainer->user_id:'-1')."';".
+     "</script>";
 ?>
 
-    <style>
-        /* Remove the navbar's default margin-bottom and rounded borders */
-        .navbar {
-            margin-bottom: 0;
-            border-radius: 0;
-        }
 
-        /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
-        .row.content {height: 450px}
+<link rel="stylesheet" type="text/css" href="css/mainpage_style.css">
 
-        /* Set gray background color and 100% height */
-        .sidenav {
-            padding-top: 20px;
-            background-color: #f1f1f1;
-            height: 100%;
-        }
-
-        /* Set black background color, white text and some padding */
-        footer {
-            background-color: #15703c;
-            color: white;
-            padding: 15px;
-        }
-
-        /* On small screens, set height to 'auto' for sidenav and grid */
-        @media screen and (max-width: 767px) {
-            .sidenav {
-                height: auto;
-                padding: 15px;
-            }
-            .row.content {height:auto;}
-        }
-    </style>
-
+<script src="javascript/mainpage_script.js"></script>
 <script type="text/javascript">
-    // Global indicates
-    var folders = []; // will be used to store all the folders of this class added by the trainer.
-    var posts = [];
-    var focused_post = '-1'; // Indicates the selected post id.
-
-    function load_welcome_page() {
-        $("#dash-board").empty();
-        $("#dash-board").append('<h1>Welcome To Marlabs Q & A</h1>');
-        $("#dash-board").append('<p>This is an online Question and Answer Gathering place For both trainers and trainees ' +
-            'to communicate with each other, ask questions and exchange ideas. You as a trainee can post any of your questions' +
-            'to be seen by the trainer and other trainees of your class. You can also follow up other people\'s posts to solve' +
-            'their problem as well as discuss a certain topic. They can also search for a certain post by its title and filter' +
-            'for certain posts by the folder added by the trainer.</p>');
-        $("#dash-board").append('<hr><h3>Class At A Glance</h3>');
-
-        $("#dash-board").append('<p>Questions, Notes and Followups.</p>');
-    }
-
-    $('body').on('click', function (e) {
-        $('.trigger').each(function () {
-            //the 'is' for buttons that trigger popups
-            //the 'has' for icons within a button that triggers a popup
-            if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
-                $(this).popover('hide');
-            }
-        });
-    });
-
-    function load_post_list(posts_in_json) {
-        focused_post = '-1'; // reset focused_post to -1.
-        posts = JSON.parse(posts_in_json);
-        posts.reverse();  // ordered by datetime from latest to earlier.
-
-        // remove all the child elements except post_and_search.
-        var post_list = $('#post-list');
-        post_list.empty();
-        posts.forEach(function(post) {
-            var li = $("<li>");
-            li.attr('id', post.post_id)
-                .addClass("list-group-item")
-                .addClass("post_li")
-                .addClass("noselect")
-                .css({"text-align":"left"})
-                .html("<label>"+post.post_summary+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-
-            if (post.post_type == '0') {  // post is an unsolved question
-                li.addClass("list-group-item-danger");
-            } else if (post.post_type == '1') {  // post is a note
-                li.addClass("list-group-item-info");
-            } else { // post is a solved question
-                li.addClass("list-group-item-success");
-            }
-
-            li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
-                      "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
-            post_list.append(li);
-        });
-    }
-
-    function isMapped(post_id, folder_id) {
-        return $.ajax({
-            url:'actions.php',
-            type:'post',
-            data:{'action':'check_post_folder_mapping', 'post_id':post_id, 'folder_id':folder_id}
-        });
-    }
-
     $(document).ready(function() {
         // load the welcome page
         load_welcome_page();
 
-        // get the trainer id
-        var trainer_id = '-1';
-        trainer_id = <?php echo (string)(isset($trainer) ? $trainer->user_id : -1);?>;
-        var current_user_id = '-1';
-        current_user_id = <?php echo (string)($current_user->user_id);?>;
-
-        // retrieve all the folders added by the trainer
-        $.ajax({
-            url:'actions.php',
-            type:'post',
-            data:{'action':'retrieve_folders', 'added_by':trainer_id},
-            success:function(updated_folders_in_json) {
-                folders = JSON.parse(updated_folders_in_json);
-                $("#folder_list").empty();
-                $("#folder_list").append('<li id="all" class="folder_li"><a href="#">All</a></li>');
-                $("#folder_list").append('<li class="dropdown-header">Filter posts by folder</li>');
-                folders.forEach(function(folder) {
-                    var li = $("<li>");
-                    li.attr('id', folder.folder_id).attr('class', 'folder_li').html("<a href='#'>" + folder.folder_name + "</a>");
-                    $("#folder_list").append(li);
-                });
-
-                $(".folder_li").on("click", function() {
-                    var post_list = $("#post-list");
-                    var folder_id = $(this).attr("id");
-                    post_list.empty();
-                    posts.sort(function(post1, post2){
-                        return new Date(post2.post_date) - new Date(post1.post_date);
-                    });
-
-                    posts.forEach(function(post) {
-                        isMapped(post.post_id, folder_id).done(function (ismapped) {
-                            if (ismapped) {
-                                var li = $("<li>");
-                                li.attr('id', post.post_id)
-                                    .addClass("list-group-item")
-                                    .addClass("post_li")
-                                    .addClass("noselect")
-                                    .css({"text-align":"left"})
-                                    .html("<label>"+post.post_summary+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-
-                                if (post.post_type == '0') {  // post is an unsolved question
-                                    li.addClass("list-group-item-danger");
-                                } else if (post.post_type == '1') {  // post is a note
-                                    li.addClass("list-group-item-info");
-                                } else { // post is a solved question
-                                    li.addClass("list-group-item-success");
-                                }
-
-                                li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
-                                    "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
-                                post_list.append(li);
-                            }
-                        });
-                    });
-                });
-
-            },
-            error:function(exception) {
-                alert("No folder retrieved!");
-            }
-        });
+        // load folders
+        load_folders();
 
         // retrieve all the posts current user can view
         $.ajax({
@@ -234,16 +85,27 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
             }
         });
 
+        // Event Handlers
+
+        // dismiss the folder list if hit elsewhere of the page
+        $('body').on('click', function (e) {
+            $('.trigger').each(function () {
+                //the 'is' for buttons that trigger popups
+                //the 'has' for icons within a button that triggers a popup
+                if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
+                    $(this).popover('hide');
+                }
+            });
+        });
+
         // hit the add new folder button
         $(document).on("click", "#add_folder_btn", function () {
-            var added_by = '-1';
-            added_by = <?php echo (string)(isset($trainer) ? $trainer->user_id : -1);?>;
             var f_name = $(".popover #folder_name_input").val();
 
             $.ajax({
                 url:'actions.php',
                 type:'post',
-                data:{'action':'add_folder','folder_name':f_name, 'added_by':added_by},
+                data:{'action':'add_folder','folder_name':f_name, 'added_by':trainer_id},
                 success:function(folders_in_json) {
                     folders = JSON.parse(folders_in_json);
                     if (folders.length == 0) {
@@ -346,18 +208,15 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                 '<div/>');
 
             // privacy
-            // get current user first name
-            var current_user_first_name = "";
-            current_user_first_name = <?php echo json_encode($current_user->first_name);?>;
 
             $("#dash-board").append('' +
                 '<div class="row">' +
                 '<div class="col-xs-3"><label for="sel1" style="padding-top:6px; color:darkgreen; font-style: italic">Show my name as: </label></div>' +
                 '<div class="col-xs-4">' +
                     '<select class="form-control" id="privacy_select" style="margin-left: -60px;">' +
-                    '<option value="0">' + current_user_first_name +'</option>' +
-                    '<option value="1">Anonymous to all</option>' +
-                    '<option value="2">Anonymous to classmates</option>' +
+                        '<option value="0">' + current_user_first_name +'</option>' +
+                        '<option value="1">Anonymous to all</option>' +
+                        '<option value="2">Anonymous to classmates</option>' +
                     '</select>' +
                 '</div>' +
                 '<div class="col-xs-5">' +
@@ -373,8 +232,6 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
             var privacy = $('#privacy_select').val();
             var post_to = $('input[name="post_to"]:checked').val();
             var post_type = $('input[name="post_type"]:checked').val();
-            var posted_by = '-1';
-            posted_by = <?php echo (string)($current_user->user_id);?>;
 
             var checkboxes = document.querySelectorAll('input[name="folder_selected"]:checked');
 
@@ -392,7 +249,7 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
                     'privacy':privacy,
                     'post_to':post_to,
                     'post_type':post_type,
-                    'posted_by':posted_by,
+                    'posted_by':current_user_id,
                     'folders_selected':folders_selected.length == 0?"no_filter":JSON.stringify(folders_selected)},
                 success:function(updated_posts_in_json) {
                     load_welcome_page();
@@ -411,33 +268,14 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
         // hit the search button
         $(document).on("click", "#search-btn", function () {
             var input_val = $("#search-input").val();
-            var post_list = $('#post-list');
-            post_list.empty();
+            $('#post-list').empty();
             posts.forEach(function(post) {
                 var index = post.post_summary.toLowerCase().indexOf(input_val.toLowerCase());
                 if (index > -1) {  // post is a search result.
                     var search_result = input_val.length == 0? post.post_summary : post.post_summary.substring(0, index) +
                     '<mark>' + post.post_summary.substring(index, index + input_val.length) + '</mark>' +
                     post.post_summary.substring(index + input_val.length);
-                    var li = $("<li>");
-                    li.attr('id', post.post_id)
-                        .addClass("list-group-item")
-                        .addClass("post_li")
-                        .addClass("noselect")
-                        .css({"text-align":"left"})
-                        .html("<label>"+search_result+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-
-                    if (post.post_type == '0') {  // post is an unsolved question
-                        li.addClass("list-group-item-danger");
-                    } else if (post.post_type == '1') {  // post is a note
-                        li.addClass("list-group-item-info");
-                    } else { // post is a solved question
-                        li.addClass("list-group-item-success");
-                    }
-
-                    li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
-                        "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
-                    post_list.append(li);
+                    render_post(post, search_result);
                 }
             });
         });
@@ -446,231 +284,127 @@ $trainer = getTrainer($dbc, $_SESSION['user_id']);
         $('#search-input').keypress(function (e) {
             if (e.which == 13) { // 13 represents enter
                 var input_val = $("#search-input").val();
-                var post_list = $('#post-list');
-                post_list.empty();
+                $('#post-list').empty();
                 posts.forEach(function(post) {
                     var index = post.post_summary.toLowerCase().indexOf(input_val.toLowerCase());
                     if (index > -1) {  // post is a search result.
                         var search_result = input_val.length == 0? post.post_summary : post.post_summary.substring(0, index) +
                             '<mark>' + post.post_summary.substring(index, index + input_val.length) + '</mark>' +
                             post.post_summary.substring(index + input_val.length);
-                        var li = $("<li>");
-                        li.attr('id', post.post_id)
-                            .addClass("list-group-item")
-                            .addClass("post_li")
-                            .addClass("noselect")
-                            .css({"text-align":"left"})
-                            .html("<label>"+search_result+"</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-
-                        if (post.post_type == '0') {  // post is an unsolved question
-                            li.addClass("list-group-item-danger");
-                        } else if (post.post_type == '1') {  // post is a note
-                            li.addClass("list-group-item-info");
-                        } else { // post is a solved question
-                            li.addClass("list-group-item-success");
-                        }
-
-                        li.append("<span style='color:slategrey;opacity: 0.7;'>"+post.post_date+"</span><br>" +
-                            "<span style='opacity: 0.7;'>" + post.post_details.substring(0, 20) + "...</span>");
-                        post_list.append(li);
+                        render_post(post, search_result);
                     }
                 });
             }
         });
 
-    });
+        // hit a post list item
+        $(document).on("click", ".post_li", function () {
+            $("#" + focused_post).removeClass("list-group-item-focused");
+            $(this).addClass("list-group-item-focused");
+            focused_post = $(this).attr("id");
 
-    function isAnonymous(poster_id, post_privacy) {
-        var current_user_id = <?php echo $current_user->user_id;?>;
-        if ((current_user_id == poster_id) ||
-            (post_privacy == '0')) {  // current user is the poster or non-anonymous post.
+            // refresh the main-board of the new focused post.
+            load_post_details();
+
             return false;
-        } else { // Anonymous to all or to the classmates
-            var current_user_type = <?php echo $current_user->user_type;?>;
-            if (current_user_type == '0') { // current user is a trainee
-                return true;
-            } else { // current user is a trainer
-                if (post_privacy == '1') {  // anonymous to all.
-                    return true;
-                } else {
-                    return false;
-                }
+        });
+
+        // hit the edit/save button
+        $(document).on("click", "#edit_post_btn", function () {
+            if ($(this).text() == "Edit") {
+                $(this).text("Save");
+            } else {
+                $(this).text("Edit");
             }
-        }
-    }
+        });
 
-    function load_post_details() {
-        // get post object from back side
-        $.ajax({
-            url:'actions.php',
-            type:'post',
-            data:{'action':'get_post_object', 'focused_post':focused_post},
-            success:function(post_in_json) {
-                var post_obj = JSON.parse(post_in_json);
-                // get the poster object from back side.
-                $.ajax({
-                    url:'actions.php',
-                    type:'post',
-                    data:{'action':'get_user_object', 'user_id':post_obj.posted_by},
-                    success: function (user_in_json) {
-                        var poster_obj = JSON.parse(user_in_json);
-                        var displayed_name = isAnonymous(poster_obj.user_id, post_obj.post_privacy) ? "Anonymous" : poster_obj.first_name;
-                        $("#dash-board").empty();
-                        $("#dash-board").append('' +
-                            '<div class="panel panel-warning" style="margin-top: 10px;">'+
-                                '<div class="panel-heading">' +
-                                    '<h4><label style="margin-left: 10px;">'+ post_obj.post_summary + '<label></h4>' +
-                                '</div>'+
-                                '<div class="panel-body">' +
-                                    '<pre><code>' + post_obj.post_details + '</code></pre>' +
-                                '</div>' +
-                                '<div class="panel-footer" style="text-align: right;">' +
-                                    '<span style="font-style: italic;color:slategrey;">Posted by '+ displayed_name + ' ' + timeSince(new Date(post_obj.post_date)) + '.</span>' +
-                                '</div>'+
-                            '</div>');
+        // focus the textarea of followup box
+        $(document).on("focus", "#followup_input", function () {
+            if (!$("#temp_div").length) {
+                $(this).animate({rows: '5'}, "fast", function () {
+                    var followup_privacy_select = $("<select></select>");
+                    followup_privacy_select.attr("id", "followup_privacy_select")
+                        .addClass("form-control")
+                        .css("margin-top", "20px")
+                        .append('<option value="0">' + current_user_first_name + '</option>' +
+                            '<option value="1">Anonymous to all</option>' +
+                            '<option value="2">Anonymous to classmates</option>');
 
-                        // retrieve all the folders related
-                        $.ajax({
-                            url:'actions.php',
-                            type:'post',
-                            data:{'action':'get_related_folders', 'post_id':post_obj.post_id},
-                            success:function(folder_names_in_json){
-                                // insert all the folders related to this particular post right after pre tag
-                                var folder_names = JSON.parse(folder_names_in_json);
-                                var panel_body = $("#dash-board").find(".panel-body");
-                                for (var i = 0; i < folder_names.length; i++) {
-                                    panel_body.append('<span class="label label-warning">' + folder_names[i] + '</span>&nbsp;');
-                                }
+                    var submit_btn = $('<button>Add a new discussion</button>');
+                    submit_btn.attr('id', 'followup_submit_btn').attr('type', 'button').css('margin-top', '20px').addClass('btn btn-primary');
 
-                                var panel_head = $("#dash-board").find(".panel-heading");
-                                if (post_obj.post_type == "0") { // an unsolved question
-                                    panel_head.prepend('<div class="btn-group" id="toggle_event_editing" style="margin-left: 10px;">'+
-                                        '<button type="button" class="btn btn-danger locked_active">Unsolved</button>'+
-                                        '<button type="button" class="btn btn-default unlocked_inactive">Solved</button>'+
-                                        '</div>');
-                                    panel_head.prepend('<span style="color:orange;" class="glyphicon glyphicon-question-sign"></span><span style="font-family: Impact, Haettenschweiler; color:orange;"> Question</span>');
+                    var cancel_btn = $('<button>Cancel</button>');
+                    cancel_btn.attr({
+                        'id': 'followup_cancel_btn',
+                        'type': 'button'
+                    }).css({'float':'right', 'margin-top':'20px'}).addClass('btn btn-link');
 
-                                    var switch_btn = $("#toggle_event_editing button");
+                    var temp_div = $("<div id='temp_div' lass='row'></div>");
+                    temp_div.append("<div id='1' class='col-md-2'><label style='margin-top: 27px'>Follow up as: </label></div>" +
+                                    "<div id='2' class='col-md-3'></div>" +
+                                    "<div id='3' class='col-md-2'></div>" +
+                                    "<div id='4' class='col-md-4'></div>" +
+                                    "<div id='5' class='col-md-1'></div>");
 
-                                    var current_user_id = <?php echo $current_user->user_id;?>;
-                                    if (current_user_id == poster_obj.user_id) { // Current user is the poster of this particular post.
-                                        switch_btn.click(function(){
-                                            toggleQuestionType(post_obj.post_id, post_obj.post_type);
+                    temp_div.find("#2").append(followup_privacy_select);
+                    temp_div.find("#3").append(submit_btn);
+                    temp_div.find("#5").append(cancel_btn);
 
-                                            if($(this).hasClass('locked_active') || $(this).hasClass('unlocked_inactive')){
-                                                /* code to do when unlocking */
-                                                // Unsolved to Solved
-                                                switch_btn.eq(0).removeClass('btn-danger');
-                                                switch_btn.eq(0).addClass('btn-default');
-                                                switch_btn.eq(1).removeClass('btn-default');
-                                                switch_btn.eq(1).addClass('btn-success');
 
-                                            }else{
-                                                /* code to do when locking */
-                                                // Solved to Unsolved
-                                                switch_btn.eq(0).removeClass('btn-default');
-                                                switch_btn.eq(0).addClass('btn-danger');
-                                                switch_btn.eq(1).removeClass('btn-success');
-                                                switch_btn.eq(1).addClass('btn-default');
-                                            }
-
-                                            /* reverse locking status */
-                                            switch_btn.eq(0).toggleClass('locked_inactive locked_active');
-                                            switch_btn.eq(1).toggleClass('unlocked_inactive unlocked_active');
-                                        });
-                                    } else {
-                                        switch_btn.prop("disabled",true);
-                                    }
-                                } else if (post_obj.post_type == "1") { // a note
-                                    panel_head.prepend('<span style="color:dodgerblue;" class="glyphicon glyphicon-pencil"></span><span style="font-family: Impact, Haettenschweiler; color:dodgerblue;"> Note</span>');
-                                } else { // a solved question
-                                    panel_head.prepend('<div class="btn-group" id="toggle_event_editing" style="margin-left: 10px;">'+
-                                        '<button type="button" class="btn btn-default locked_inactive">Unsolved</button>'+
-                                        '<button type="button" class="btn btn-success unlocked_active">Solved</button>'+
-                                        '</div>');
-                                    panel_head.prepend('<span style="color:orange;" class="glyphicon glyphicon-question-sign"></span><span style="font-family: Impact, Haettenschweiler; color:orange;"> Question</span>');
-
-                                    var switch_btn = $("#toggle_event_editing button");
-
-                                    var current_user_id = <?php echo $current_user->user_id;?>;
-                                    if (current_user_id == poster_obj.user_id) { // Current user is the poster of this particular post.
-                                        switch_btn.click(function(){
-                                            toggleQuestionType(post_obj.post_id, post_obj.post_type);
-
-                                            if($(this).hasClass('locked_active') || $(this).hasClass('unlocked_inactive')){
-                                                /* code to do when unlocking */
-                                                // Unsolved to Solved
-                                                switch_btn.eq(0).removeClass('btn-danger');
-                                                switch_btn.eq(0).addClass('btn-default');
-                                                switch_btn.eq(1).removeClass('btn-default');
-                                                switch_btn.eq(1).addClass('btn-success');
-
-                                            }else{
-                                                /* code to do when locking */
-                                                // Solved to Unsolved
-                                                switch_btn.eq(0).removeClass('btn-default');
-                                                switch_btn.eq(0).addClass('btn-danger');
-                                                switch_btn.eq(1).removeClass('btn-success');
-                                                switch_btn.eq(1).addClass('btn-default');
-                                            }
-
-                                            /* reverse locking status */
-                                            switch_btn.eq(0).toggleClass('locked_inactive locked_active');
-                                            switch_btn.eq(1).toggleClass('unlocked_inactive unlocked_active');
-                                        });
-                                    } else {
-                                        switch_btn.prop("disabled",true);
-                                    }
-                                }
-                            },
-                            error:function(exception) {
-                                alert("Failed to load folders.");
-                            }
-                        });
-                    },
-                    error:function(exception) {
-                        $("#dash-board").empty();
-                        $("#dash-board").append("<h1>Failed to load the post.</h1>");
-                    }
+                    $(this).after(temp_div);
                 });
-            },
-            error:function(exception) {
-                $("#dash-board").empty();
-                $("#dash-board").append("<h1>Failed to load the post.</h1>");
             }
         });
-    }
 
-    function toggleQuestionType(post_id, post_type) {
-        // update global variable posts
-        for (var i in posts) {
-            if (posts[i].post_id == post_id) {
-                posts[i].post_type = post_type == '0' ? '2' : '0';
-                break; //Stop this loop, we found it!
-            }
-        }
-
-        // update html elements
-        $("#post-list").find("li#" + post_id).toggleClass("list-group-item-danger list-group-item-success");
-
-        // update database
-        $.ajax({
-            url:'actions.php',
-            type:'post',
-            data:{'action':'toggle_question_type', 'post_id':post_id, 'post_type':post_type}
+        // hit the cancel button in the followup box
+        $(document).on("click", "#followup_cancel_btn", function () {
+            $("#followup_input").animate({rows: '1'}, "fast", function() {
+                $("#followup_input").val("");
+                $("#temp_div").remove();
+            });
         });
-    }
 
-    // hit a post list item
-    $(document).on("click", ".post_li", function () {
-        $("#" + focused_post).removeClass("list-group-item-focused");
-        $(this).addClass("list-group-item-focused");
-        focused_post = $(this).attr("id");
+        // hit the add-new-followup button
+        $(document).on("click", "#followup_submit_btn", function () {
+            var details = $("textarea#followup_input").val();
+            var privacy = $("select#followup_privacy_select").val();
 
-        // refresh the main-board of the new focused post.
-        load_post_details();
+            var followup_form = $("#followup_form");
+            var followup_board = $("#followup_board");
 
-        return false;
+            $.ajax({
+                url:'actions.php',
+                type:'post',
+                data:{'action':'add_followup',
+                      'followup_details':details,
+                      'followup_privacy':privacy,
+                      'post_following':focused_post,
+                      'added_by':current_user_id},
+                success:function(updated_followups_in_json) {
+                    var followups = JSON.parse(updated_followups_in_json);
+                    followup_form.siblings().remove();
+                    followups.forEach(function(followup) {
+                        var followup_panel = $("<div></div>");
+                        var displayed_name = isAnonymous(followup.added_by, followup.followup_privacy) ? "Anonymous" : "<strong><a href='#'>" + followup.added_by_name + "</a></strong>";
+                        followup_panel.attr("id", followup.followup_id).addClass("panel panel-primary")
+                            .append('<div class="panel-body">' +
+                                displayed_name +
+                                '<span style="color: lightslategrey;font-style: italic;">  '+ timeSince(new Date(followup.followup_date))+'</span>' +
+                                '<p>' + followup.followup_details + '</p>' +
+                                '</div>');
+                        followup_board.prepend(followup_panel);
+                    });
+
+                    $("#followup_input").animate({rows: '1'}, "fast", function() {
+                        $("#followup_input").val("");
+                        $("#temp_div").remove();
+                    });
+                },
+                error:function(exception) {
+                    alert("Failed to add new followup.");
+                }
+            });
+        });
     });
 </script>
 
@@ -790,6 +524,9 @@ echo "<div id=\"loggedinnotice\" class=\"alert alert-info\">
 
         </div>
         <div class="col-sm-1 sidenav">
+            <div class="well">
+                <p>ADS</p>
+            </div>
             <div class="well">
                 <p>ADS</p>
             </div>

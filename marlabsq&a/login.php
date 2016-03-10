@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     require('includes/functions_needed.php');
 
     // Need the database connection:
-    require('includes/mysqli_connect.php');
+    require('mysqli_connect.php');
     // Check the login:
     list ($check, $data) = check_login($dbc, $_POST['email'], $_POST['pass']);
 

@@ -1,0 +1,250 @@
+.navbar-default {
+    background-color: #edf6f0;
+    border-color: #24a561;
+}
+.navbar-default .navbar-brand {
+    color: #129048;
+}
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus {
+    color: #86f293;
+}
+.navbar-default .navbar-text {
+    color: #129048;
+}
+.navbar-default .navbar-nav > li > a {
+    color: #129048;
+}
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    color: #86f293;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu {
+    background-color: #edf6f0;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a {
+    color: #129048;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:focus {
+    color: #86f293;
+    background-color: #24a561;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > .divider {
+    background-color: #24a561;
+}
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #86f293;
+    background-color: #24a561;
+}
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+    color: #86f293;
+    background-color: #24a561;
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    color: #86f293;
+    background-color: #24a561;
+}
+.navbar-default .navbar-toggle {
+    border-color: #24a561;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+    background-color: #24a561;
+}
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #129048;
+}
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+    border-color: #129048;
+}
+.navbar-default .navbar-link {
+    color: #129048;
+}
+.navbar-default .navbar-link:hover {
+    color: #86f293;
+}
+
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+        color: #129048;
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+        color: #86f293;
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+    .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+    .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+        color: #86f293;
+        background-color: #24a561;
+    }
+}
+
+
+#custom-search-input{
+    padding: 3px;
+    border: solid 1px #E4E4E4;
+    border-radius: 6px;
+    background-color: #f8fff8;
+    height: 37px;
+}
+
+#custom-search-input input{
+    border: 0;
+    box-shadow: none;
+    background-color: #f8fff8;
+
+    height: 30px;
+}
+
+#custom-search-input button{
+    margin: 2px 0 0 0;
+    background: none;
+    box-shadow: none;
+    border: 0;
+    color: #666666;
+    padding: 0 8px 0 10px;
+    border-left: solid 1px #ccc;
+
+    height: 25px;
+}
+
+#custom-search-input button:hover{
+    border: 0;
+    box-shadow: none;
+    border-left: solid 1px #ccc;
+
+    height: 25px;
+}
+
+#custom-search-input .glyphicon-search{
+    font-size: 18px;
+    color: #1CA347;
+}
+
+#add-folder {width:120px;}
+.popover {max-width:400px;}
+
+label.btn span {
+    font-size: 1.5em ;
+}
+
+label input[type="radio"] ~ i.fa.fa-circle-o{
+    color: #c8c8c8;    display: inline;
+}
+label input[type="radio"] ~ i.fa.fa-check-circle-o{
+    display: none;
+}
+label input[type="radio"]:checked ~ i.fa.fa-circle-o{
+    display: none;
+}
+label input[type="radio"]:checked ~ i.fa.fa-check-circle-o{
+    color: darkgreen;    display: inline;
+}
+label:hover input[type="radio"] ~ i.fa {
+    color: darkgreen;
+}
+
+label input[type="checkbox"] ~ i.fa.fa-square-o{
+    color: #c8c8c8;    display: inline;
+}
+label input[type="checkbox"] ~ i.fa.fa-check-square-o{
+    display: none;
+}
+label input[type="checkbox"]:checked ~ i.fa.fa-square-o{
+    display: none;
+}
+label input[type="checkbox"]:checked ~ i.fa.fa-check-square-o{
+    color: darkgreen;    display: inline;
+}
+label:hover input[type="checkbox"] ~ i.fa {
+    color: darkgreen;
+}
+
+div[data-toggle="buttons"] label.active{
+    color: darkgreen;
+}
+
+div[data-toggle="buttons"] label {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 2em;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: top;
+    cursor: pointer;
+    background-color: none;
+    border: 0px solid
+    #c8c8c8;
+    border-radius: 3px;
+    color: #c8c8c8;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+div[data-toggle="buttons"] label:hover {
+    color: darkgreen;
+}
+
+div[data-toggle="buttons"] label:active, div[data-toggle="buttons"] label.active {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -khtml-user-select: none;    /* Konqueror */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* IE/Edge */
+    user-select: none;           /* non-prefixed version, currently
+                                  not supported by any browser */
+}
+
+.list-group-item-focused {
+    opacity: 0.5;
+}
+
+/* Remove the navbar's default margin-bottom and rounded borders */
+.navbar {
+    margin-bottom: 0;
+    border-radius: 0;
+}
+
+/* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+.row.content {height: 450px}
+
+/* Set gray background color and 100% height */
+.sidenav {
+    padding-top: 20px;
+}
+
+/* Set black background color, white text and some padding */
+footer {
+    background-color: #15703c;
+    color: white;
+    padding-bottom: 15px;
+}
+
+/* On small screens, set height to 'auto' for sidenav and grid */
+@media screen and (max-width: 767px) {
+    .sidenav {
+        height: auto;
+        padding: 15px;
+    }
+    .row.content {height:auto;}
+}
